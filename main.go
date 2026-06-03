@@ -36,9 +36,18 @@ func run() {
 }
 func child() {
 	fmt.Printf("Child func: setting namespace\n PID : %v\n", os.Getpid())
-	syscall.Sethostname([]byte("inside"))
-	syscall.Chroot("/container")
-	syscall.Chdir("/")
+	if err := syscall.Sethostname([]byte("inside")); err != nil {
+		fmt.Println("Error setting namespace : ", err)
+	}
+	if err := syscall.Chroot("/container"); err != nil {
+		fmt.Println("Error changing root : ", err)
+	}
+	if err := syscall.Chdir("/"); err != nil {
+		fmt.Println("Error changing directory : ", err)
+	}
+	if err := syscall.Mount("proc", "proc", "proc", 0, ""); err != nil {
+		fmt.Println("Error mounting : ", err)
+	}
 
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 
@@ -50,5 +59,6 @@ func child() {
 		fmt.Printf("Error running the /bin/bash command - %v\n", err)
 		os.Exit(1)
 	}
+	defer syscall.Unmount("proc", 0)
 
 }
