@@ -27,7 +27,8 @@ func run() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
 	cmd.Run()
@@ -38,6 +39,7 @@ func child() {
 	syscall.Sethostname([]byte("inside"))
 	syscall.Chroot("/container")
 	syscall.Chdir("/")
+	syscall.Mount("proc", "proc", "proc", 0, "")
 
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 
@@ -49,5 +51,6 @@ func child() {
 		fmt.Printf("Error running the /bin/bash command - %v\n", err)
 		os.Exit(1)
 	}
+	syscall.Unmount("/proc", 0)
 
 }
