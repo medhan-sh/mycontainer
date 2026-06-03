@@ -39,7 +39,6 @@ func child() {
 	syscall.Sethostname([]byte("inside"))
 	syscall.Chroot("/container")
 	syscall.Chdir("/")
-	syscall.Mount("proc", "proc", "proc", 0, "")
 
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 
@@ -51,6 +50,5 @@ func child() {
 		fmt.Printf("Error running the /bin/bash command - %v\n", err)
 		os.Exit(1)
 	}
-	syscall.Unmount("/proc", 0)
 
 }
